@@ -1,4 +1,4 @@
-# Quick Options for DELL G15
+# Quick Menu for DELL G15
 
 ![quick-options](./quick-options.png)
 
