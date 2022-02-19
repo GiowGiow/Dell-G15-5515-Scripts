@@ -25,10 +25,8 @@ $Current_Folder = split-path $MyInvocation.MyCommand.Path
 	
 [System.Reflection.Assembly]::LoadWithPartialName('System.Windows.Forms')  	 | out-null
 [System.Reflection.Assembly]::LoadWithPartialName('presentationframework') 	 | out-null
-[System.Reflection.Assembly]::LoadWithPartialName('System.Drawing') 		 | out-null
 [System.Reflection.Assembly]::LoadWithPartialName('WindowsFormsIntegration') | out-null
 [System.Reflection.Assembly]::LoadFrom("$Current_Folder\assembly\MahApps.Metro.dll") | out-null
-
 $icon = [System.Drawing.Icon]::ExtractAssociatedIcon("C:\Windows\System32\CompMgmtLauncher.exe")	
 
 
@@ -58,7 +56,6 @@ $icon = [System.Drawing.Icon]::ExtractAssociatedIcon("C:\Windows\System32\CompMg
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
-	
 
     <Grid>
     <Label Content="Options" HorizontalAlignment="Left" Margin="10,3,0,0" VerticalAlignment="Top" Width="112"/>
@@ -81,6 +78,7 @@ $battery = $Main_Window.FindName('battery')
 $budget = $Main_Window.FindName('budget')
 
 # Status
+# Here we are chekcking if the services/programs are active
 $ServiceName = 'AWCCService'
 $arrService = Get-Service -Name $ServiceName
 $awcc.IsChecked = ($arrService.Status -eq 'Running')
@@ -112,64 +110,70 @@ if ($alien_fx -or $alien_fan) {
 
 # Events
 # AWCC Handler
-$awcc.Add_Checked({
-        & ".\alienware_command_center.ps1" "start"
-        "AWCC is now running" | Show-Notification -ToastTitle 'Alienware Command Center'
-    })
-$awcc.Add_UnChecked({
-        & ".\alienware_command_center.ps1" "stop"
-        "AWCC is stopped" | Show-Notification -ToastTitle 'Alienware Command Center'
+$awcc.Add_Click({
+        if(!$awcc.IsChecked) {
+            & ".\alienware_command_center.ps1" "start"
+            "AWCC is now running" | Show-Notification -ToastTitle 'Alienware Command Center'        
+        } else {
+            & ".\alienware_command_center.ps1" "stop"
+            "AWCC is stopped" | Show-Notification -ToastTitle 'Alienware Command Center'
+        }
     })
 
 # Killer Handler
-$killer.Add_Checked({
+$killer.Add_Click({
+    if(!$killer.IsChecked) {
         & ".\killer_services.ps1" "start"
-        "Killer Software is now running" | Show-Notification -ToastTitle 'Killer Software'
-    })
-$killer.Add_UnChecked({
+        "Killer Software is now running" | Show-Notification -ToastTitle 'Killer Software'        
+    } else {
         & ".\killer_services.ps1" "stop"
         "Killer Software is now stopped" | Show-Notification -ToastTitle 'Killer Software'
-    })
+    }
+})
 
 # Nahimic Handler
-$nahimic.Add_Checked({
+$nahimic.Add_Click({
+    if(!$nahimic.IsChecked) {
         & ".\nahimic_service.ps1" "start"
         "Nahimic is now running" | Show-Notification -ToastTitle 'Nahimic Audio'
-    })
-$nahimic.Add_UnChecked({
+    } else {
         & ".\nahimic_service.ps1" "stop"
         "Nahimic is now stopped" | Show-Notification -ToastTitle 'Nahimic Audio'
-    })
+    }
+})
 
 # Nvidia Broadcast Handler
-$nvidia.Add_Checked({
+$nvidia.Add_Click({
+    if(!$nvidia.IsChecked) {
         & ".\nvidia_broadcast.ps1" "start"
         "Nvidia Broadcast Svc is now running" | Show-Notification -ToastTitle 'Nvidia Broadcast'
-    })
-$nvidia.Add_UnChecked({
+    } else {
         & ".\nvidia_broadcast.ps1" "stop"
         "Nvidia Broadcast Svc is now stopped" | Show-Notification -ToastTitle 'Nvidia Broadcast'
-    })
+    }
+})
 
 # Battery Handler
-$battery.Add_Checked({
+$battery.Add_Click({
+    if($battery.IsChecked) {
         & ".\battery_mode.ps1" "start"
         "Power Plan is now on battery mode" | Show-Notification -ToastTitle 'Power Mode Changed'
-    })
-$battery.Add_UnChecked({
+    } else {
         & ".\battery_mode.ps1" "stop"
         "Power Plan is now on balanced mode" | Show-Notification -ToastTitle 'Power Mode Changed'
-    })
+    }
+})
 
 # Budget Alienware Software Handler
-$budget.Add_Checked({
+$budget.Add_Click({
+    if(!$budget.IsChecked) {
         & ".\budget_alienware_software.ps1" "start"
         "Budget AWCC is running" | Show-Notification -ToastTitle 'Budget AWCC'
-    })
-$budget.Add_UnChecked({
+    } else {
         & ".\budget_alienware_software.ps1" "stop"
         "Budget AWCC has stopped" | Show-Notification -ToastTitle 'Budget AWCC'
-    })
+    }
+})
 
 ################################################################################################################################"
 # ACTIONS FROM THE SYSTRAY
@@ -184,15 +188,11 @@ $Main_Tool_Icon.Text = "QOpt"
 $Main_Tool_Icon.Icon = $icon
 $Main_Tool_Icon.Visible = $true
 
-$Menu_Users = New-Object System.Windows.Forms.MenuItem
-$Menu_Users.Text = "Quick Options"
-
 $Menu_Exit = New-Object System.Windows.Forms.MenuItem
 $Menu_Exit.Text = "Exit"
 
 $contextmenu = New-Object System.Windows.Forms.ContextMenu
 $Main_Tool_Icon.ContextMenu = $contextmenu
-$Main_Tool_Icon.contextMenu.MenuItems.AddRange($Menu_Users)
 $Main_Tool_Icon.contextMenu.MenuItems.AddRange($Menu_Exit)
 
 
@@ -205,19 +205,36 @@ $Main_Tool_Icon.Add_Click({
             $Main_Window.WindowStartupLocation = "CenterScreen"	
             $Main_Window.Show()
             $Main_Window.Activate()
+
+            $ServiceName = 'AWCCService'
+            $arrService = Get-Service -Name $ServiceName
+            $awcc.IsChecked = ($arrService.Status -eq 'Running')
+
+            $ServiceName = 'KAPSService'
+            $arrService = Get-Service -Name $ServiceName
+            $killer.IsChecked = ($arrService.Status -eq 'Running')
+
+            $ServiceName = 'NahimicService'
+            $arrService = Get-Service -Name $ServiceName
+            $nahimic.IsChecked = ($arrService.Status -eq 'Running')
+
+            $ServiceName = 'NvBroadcast.ContainerLocalSystem'
+            $arrService = Get-Service -Name $ServiceName
+            # NVIDIA Broadcast UI.exe
+            $nvidiaBroadcastUiProcessUI = Get-Process "NVIDIA Broadcast UI" -ErrorAction SilentlyContinue
+            $nvidiaBroadcastUiProcess = Get-Process "NVIDIA Broadcast" -ErrorAction SilentlyContinue
+            if ($nvidiaBroadcastUiProcessUI -or $nvidiaBroadcastUiProcess -or ($arrService.Status -eq 'Running')) {
+                $nvidia.IsChecked = $true
+            }
+
+            $battery.IsChecked = Assert-Power-Plan-Battery-Mode
+
+            $alien_fx = Get-Process "alienfx-gui" -ErrorAction SilentlyContinue
+            $alien_fan = Get-Process "alienfan-gui" -ErrorAction SilentlyContinue
+            if ($alien_fx -or $alien_fan) {
+                $budget.IsChecked = $true
+            }
         }				
-    })
-
-
-
-# ---------------------------------------------------------------------
-# Action after clicking on User Analysis
-# ---------------------------------------------------------------------
-$Menu_Users.Add_Click({	
-        $Main_Window.WindowStartupLocation = "CenterScreen"	
-        [System.Windows.Forms.Integration.ElementHost]::EnableModelessKeyboardInterop($Main_Window)
-        $Main_Window.ShowDialog()
-        $Main_Window.Activate()	
     })
 
 # ---------------------------------------------------------------------
@@ -233,14 +250,6 @@ $Main_Window.Add_MouseLeftButtonDown({
 # Close the window if it loses focus
 $Main_Window.Add_Deactivated({
         $Main_Window.Hide()	
-        #$CustomDialog.RequestCloseAsync()
-        # Close_modal_progress	
-    })
-
-# Action on the close button
-$Main_Window.Add_Closing({
-        $_.Cancel = $true
-        # [MahApps.Metro.Controls.Dialogs.DialogManager]::ShowMessageAsync($Main_Window, "Oops :-(", "To close the window click out of the window !!!")					
     })
 
 # When Exit is clicked, close everything and kill the PowerShell process
