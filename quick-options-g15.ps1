@@ -111,7 +111,7 @@ if ($alien_fx -or $alien_fan) {
 # Events
 # AWCC Handler
 $awcc.Add_Click({
-        if(!$awcc.IsChecked) {
+        if($awcc.IsChecked) {
             & ".\alienware_command_center.ps1" "start"
             "AWCC is now running" | Show-Notification -ToastTitle 'Alienware Command Center'        
         } else {
@@ -122,7 +122,7 @@ $awcc.Add_Click({
 
 # Killer Handler
 $killer.Add_Click({
-    if(!$killer.IsChecked) {
+    if($killer.IsChecked) {
         & ".\killer_services.ps1" "start"
         "Killer Software is now running" | Show-Notification -ToastTitle 'Killer Software'        
     } else {
@@ -133,7 +133,7 @@ $killer.Add_Click({
 
 # Nahimic Handler
 $nahimic.Add_Click({
-    if(!$nahimic.IsChecked) {
+    if($nahimic.IsChecked) {
         & ".\nahimic_service.ps1" "start"
         "Nahimic is now running" | Show-Notification -ToastTitle 'Nahimic Audio'
     } else {
@@ -144,7 +144,7 @@ $nahimic.Add_Click({
 
 # Nvidia Broadcast Handler
 $nvidia.Add_Click({
-    if(!$nvidia.IsChecked) {
+    if($nvidia.IsChecked) {
         & ".\nvidia_broadcast.ps1" "start"
         "Nvidia Broadcast Svc is now running" | Show-Notification -ToastTitle 'Nvidia Broadcast'
     } else {
@@ -166,7 +166,7 @@ $battery.Add_Click({
 
 # Budget Alienware Software Handler
 $budget.Add_Click({
-    if(!$budget.IsChecked) {
+    if($budget.IsChecked) {
         & ".\budget_alienware_software.ps1" "start"
         "Budget AWCC is running" | Show-Notification -ToastTitle 'Budget AWCC'
     } else {
