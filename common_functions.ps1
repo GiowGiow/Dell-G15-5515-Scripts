@@ -22,11 +22,11 @@ function Show-Notification {
     $SerializedXml.LoadXml($RawXml.OuterXml)
 
     $Toast = [Windows.UI.Notifications.ToastNotification]::new($SerializedXml)
-    $Toast.Tag = "PowerShell"
-    $Toast.Group = "PowerShell"
+    $Toast.Tag = "Quick Options"
+    $Toast.Group = "Quick Options"
     $Toast.ExpirationTime = [DateTimeOffset]::Now.AddMinutes(1)
 
-    $Notifier = [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("PowerShell")
+    $Notifier = [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier("Quick Options")
     $Notifier.Show($Toast);
 }
 
