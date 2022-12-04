@@ -46,7 +46,7 @@ function Set-Svc {
 function Start-Program-If-Not-Running {
     Param (
         [string]
-        $folderPath,
+        $executablePath,
         [string]
         $programName
     )
@@ -57,18 +57,52 @@ function Start-Program-If-Not-Running {
     }
     else {
         Write-Host "Starting $programName..."
-        Start-Process -WindowStyle Minimized "$folderPath\$programName.exe"
+        Start-Process -WindowStyle Minimized "$executablePath"
     }
 }
+function Set-Software-Battery-Mode {
+    # Stop/Change behaviour of some softwares on battery
+    param (
+        [string] $State # Should be AC or Battery
+    )
+    $RainmeterPath = "C:\Program Files\Rainmeter\Rainmeter.exe"
 
+    If ($State -eq 'AC') {
+        & $RainmeterPath !LoadLayout "Desktop Layout"
+    }
+    elseif ($State -eq 'Battery') {
+        & $RainmeterPath !LoadLayout "Laptop Layout"
+    }
+    else {
+        Write-Host ("Not a valid action")
+    }
+}
+function Start-Battery-Saver {
+    # Set battery saver mode (windows 10/11) to start on battery at a certain
+    # battery threshold
+    Param (
+        [string] $BatteryThreshold
+    )
+    powercfg /setdcvalueindex SCHEME_CURRENT SUB_ENERGYSAVER ESBATTTHRESHOLD $BatteryThreshold 
+}
+
+function Set-Laptop-Display-Hz {
+    # Set monitor to defined Hz using this binary
+    # from: https://tools.taubenkorb.at/change-screen-resolution/
+    Param (
+        [string] $LaptopDisplayNumber,
+        [string] $DisplayFrequency
+    )
+    & ".\ChangeScreenResolution.exe" "/d=$LaptopDisplayNumber" "/f=$DisplayFrequency" > $null 2>&1
+}
 function Assert-Power-Plan-Battery-Mode {
     # List power consumption profile schemes
     $powerConstants = @{}
     PowerCfg.exe -ALIASES | Where-Object { $_ -match 'SCHEME_' } | ForEach-Object {
-        $guid,$alias = ($_ -split '\s+', 2).Trim()
+        $guid, $alias = ($_ -split '\s+', 2).Trim()
         $powerConstants[$alias] = $guid 
     }
-    
+
     # Get a list of power schemes and check the one that is active
     $powerSchemes = PowerCfg.exe -LIST | Where-Object { $_ -match '^GUID' } | ForEach-Object {
         $guid = $_ -replace '.*GUID:\s*([-a-f0-9]+).*', '$1'
