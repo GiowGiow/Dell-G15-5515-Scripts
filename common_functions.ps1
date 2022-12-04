@@ -50,18 +50,15 @@ function Set-Service-State {
 function Start-Program-If-Not-Running {
     Param (
         [string]
-        $executablePath,
+        $ExecutablePath,
         [string]
-        $programName
+        $ProgramName
     )
 
-    $isRunning = (Get-Process | Where-Object { $_.Name -eq $programName }).Count -gt 0
-    if ($isRunning) {
-        Write-Host "Already running..."
-    }
-    else {
-        Write-Host "Starting $programName..."
-        Start-Process -WindowStyle Minimized "$executablePath"
+    $isRunning = (Get-Process | Where-Object { $_.Name -eq $ProgramName }).Count -gt 0
+    if (!$isRunning) {
+        Write-Host "Starting $ProgramName..."
+        Start-Process -WindowStyle Minimized "$ExecutablePath"
     }
 }
 function Set-Software-Battery-Mode {
@@ -96,7 +93,8 @@ function Set-Laptop-Display-Hz {
         [string] $LaptopDisplayNumber,
         [string] $DisplayFrequency
     )
-    & ".\ChangeScreenResolution.exe" "/d=$LaptopDisplayNumber" "/f=$DisplayFrequency" > $null 2>&1
+    $ChangeScreenResolutionBinPath = ".\ChangeScreenResolution.exe"
+    & $ChangeScreenResolutionBinPath "/d=$LaptopDisplayNumber" "/f=$DisplayFrequency" > $null 2>&1
 }
 
 function Set-Killer-Services-State {
@@ -177,19 +175,25 @@ function Set-NVIDIA-BroadCast-State {
     param (
         [string] $State
     )
-    $NvidiaBroadcastExePath = "C:\Program Files\NVIDIA Corporation\NVIDIA Broadcast\NVIDIA Broadcast UI.exe"
+
+    $UIExeName = "NVIDIA Broadcast UI.exe"
+    $ExeName = "NVIDIA Broadcast.exe"
+
+    $ExePath = "C:\Program Files\NVIDIA Corporation\NVIDIA Broadcast\$ExeName"
+    $NvidiaBroadcastServiceName = "NvBroadcast.ContainerLocalSystem"
+    $NvidiaBroadcastTaskName = "NvBroadcast_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}"
 
     If ($State -eq "enable") {
         # You need this service to access the camera, mic and so on
-        Set-Service-State -State $State -SvcName "NvBroadcast.ContainerLocalSystem"
-        & $NvidiaBroadcastExePath
+        Set-Service-State -State $State -SvcName $NvidiaBroadcastServiceName
+        & $ExePath
     }
     elseif ($State -eq "disable") {
         # This tasks runs when you logon and it starts Broadcast UI minimized
-        Disable-ScheduledTask -TaskName "NvBroadcast_{B2FE1952-0186-46C3-BAEC-A80AA35AC5B8}"  
-        taskkill /IM "NVIDIA Broadcast UI.exe" /F /FI "STATUS ne UNKNOWN"
-        taskkill /IM "NVIDIA Broadcast.exe" /F /FI "STATUS ne UNKNOWN"
-        Set-Service-State -State $State -SvcName "NvBroadcast.ContainerLocalSystem"
+        Disable-ScheduledTask -TaskName $NvidiaBroadcastTaskName
+        taskkill /IM "$UIExeName" /F /FI "STATUS ne UNKNOWN"
+        taskkill /IM "$ExeName" /F /FI "STATUS ne UNKNOWN"
+        Set-Service-State -State $State -SvcName $NvidiaBroadcastServiceName
     }
     else {
         Write-Host ("Not a valid state")
@@ -200,8 +204,11 @@ function Set-Alien-Tools-State {
     param (
         [string] $State
     )
+
+    $AlienFxExePath = "C:\Program Files\AlienFX Tools\alienfx-gui.exe"
+
     If ($State -eq "enable") {
-        Start-Program-If-Not-Running "C:\Program Files\AlienFX Tools\alienfx-gui.exe" "alienfx-gui"
+        Start-Program-If-Not-Running $AlienFxExePath "alienfx-gui"
     }
     elseif ($State -eq "disable") {
         taskkill /IM "alienfx-gui.exe" /F /FI "STATUS ne UNKNOWN"
