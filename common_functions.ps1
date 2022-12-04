@@ -61,6 +61,7 @@ function Start-Program-If-Not-Running {
         Start-Process -WindowStyle Minimized "$ExecutablePath"
     }
 }
+
 function Set-Software-Battery-Mode {
     # Stop/Change behaviour of some softwares on battery
     param (
@@ -78,6 +79,7 @@ function Set-Software-Battery-Mode {
         Write-Host ("Not a valid action")
     }
 }
+
 function Start-Battery-Saver {
     # Set battery saver mode (Windows 10/11) to start on battery at a certain battery threshold
     Param (
@@ -122,7 +124,6 @@ function Set-Killer-Services-State {
         Write-Host ("Not a valid State")
     }
 }
-
 
 function Set-Nahimic-Services-State {
     param (
