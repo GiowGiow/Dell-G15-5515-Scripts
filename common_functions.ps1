@@ -82,7 +82,7 @@ function Set-Software-Battery-Mode {
     }
 }
 function Start-Battery-Saver {
-    # Set battery saver mode (windows 10/11) to start on battery at a certain battery threshold
+    # Set battery saver mode (Windows 10/11) to start on battery at a certain battery threshold
     Param (
         [string] $BatteryThreshold
     )
