@@ -62,22 +62,12 @@ function Start-Program-If-Not-Running {
     }
 }
 
-function Set-Software-Battery-Mode {
-    # Stop/Change behaviour of some softwares on battery
-    param (
-        [string] $State # Should be AC or Battery
+function Tuple {
+    Param (
+        [string] $Str1,
+        [string] $Str2
     )
-    $RainmeterPath = "C:\Program Files\Rainmeter\Rainmeter.exe"
-
-    If ($State -eq "AC") {
-        & $RainmeterPath !LoadLayout "Desktop Layout"
-    }
-    elseif ($State -eq "Battery") {
-        & $RainmeterPath !LoadLayout "Laptop Layout"
-    }
-    else {
-        Write-Host ("Not a valid action")
-    }
+    New-Object 'Tuple[string,string]'($Str1, $Str2)
 }
 
 function Start-Battery-Saver {

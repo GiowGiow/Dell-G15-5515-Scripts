@@ -102,6 +102,61 @@ function Set-NVIDIA-BroadCast-State {
     }
 }
 
+function Set-Software-Battery-Mode {
+    # Stop/Change behaviour of some softwares on battery
+    param (
+        [string] $State # Should be AC or Battery
+    )
+    $RainmeterPath = "C:\Program Files\Rainmeter\Rainmeter.exe"
+
+    If ($State -eq "AC") {
+        & $RainmeterPath !LoadLayout "Desktop Layout"
+    }
+    elseif ($State -eq "Battery") {
+        & $RainmeterPath !LoadLayout "Laptop Layout"
+    }
+    else {
+        Write-Host ("Not a valid action")
+    }
+}
+
+function Set-Software-Battery-Mode-Aggressive {
+    param (
+        [string] $State # Should be AC or Battery
+    )
+    If ($State -eq "AC") {
+        $SoftwareToLoad = @(`
+                Tuple "C:\Users\gioma\Documents\utilities\clickmonitorddc\ClickMonitorDDC_7_2.exe" "Click Monitor DDC", `
+                Tuple "C:\Program Files\Rainmeter\Rainmeter.exe" "Rainmeter", `
+                Tuple "C:\Program Files\WindowsApps\40459File-New-Project.EarTrumpet_2.2.0.0_x86__1sdd7yawvg6ne\EarTrumpet\EarTrumpet.exe" "EarTrumpet", `
+                Tuple "C:\Users\gioma\AppData\Local\Programs\AutoDarkMode\AutoDarkModeSvc.exe" "AutoDarkModeSvc", `
+                Tuple "C:\Program Files (x86)\Steam\steamapps\common\wallpaper_engine\wallpaper32.exe" "wallpaper32", `
+                Tuple "C:\Users\gioma\AppData\Local\Programs\ElevenClock\ElevenClock.exe" "ElevenClock")
+
+        foreach ($Software in $SoftwareToLoad) {
+            Write-Host "Loading" $Software.Item2 "..."
+            Start-Program-If-Not-Running $Software.Item1 $Software.Item2
+        }
+
+        Set-NVIDIA-BroadCast-State "enable"
+    }
+    elseif ($action -eq "Battery") {
+        $SoftwareToKill = @("Rainmeter.exe", "ClickMonitorDDC_7_2.exe", "EarTrumpet.exe", `
+                "AutoDarkModeSvc.exe", "Rainmeter.exe", "ElevenClock.exe", "PhoneExperienceHost.exe", `
+                "YourPhoneAppProxy.exe")
+
+        foreach ($Software in $SoftwareToKill) {
+            Write-Host "Stopping $Software..."
+            taskkill /IM $Software /F /FI "STATUS ne UNKNOWN"
+        }
+
+        Set-NVIDIA-BroadCast-State "disable"
+    }
+    else {
+        Write-Host ("Not a valid action")
+    }
+}
+
 function Set-Alien-Tools-State {
     param (
         [string] $State
