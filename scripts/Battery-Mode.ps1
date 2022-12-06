@@ -16,6 +16,7 @@ Start-Transcript -path $LogFile -append
 $action = $args[0]
 
 If ($action -eq 'start') {
+    Disable-Turbo-Boost
     Change-TDP $Ryzen5800hTDPs.TDP15
     Set-Laptop-Display-Hz -LaptopDisplayNumber $LaptopDisplayNumber -DisplayFrequency $DisplayHzOnBattery
     Start-Battery-Saver -BatteryThreshold $BatterySaverThreshold
@@ -23,6 +24,7 @@ If ($action -eq 'start') {
     "Display is now running on $DisplayHzOnBattery Hz`nTurbo Boost has been Disabled`nTDP is now 15W" | Show-Notification -ToastTitle 'Battery Mode'
 }
 elseif ($action -eq 'stop') {
+    Enable-Turbo-Boost
     Change-TDP $Ryzen5800hTDPs.TDP45_85C
     Set-Laptop-Display-Hz -LaptopDisplayNumber $LaptopDisplayNumber -DisplayFrequency $DisplayHzDefault
     Set-Software-Battery-Mode "AC"
