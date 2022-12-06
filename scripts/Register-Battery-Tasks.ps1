@@ -2,6 +2,13 @@
 
 $EventsToQuery = New-Object PSObject -Property @{
     # List of interesting events that we can query on Windows to execute tasks
+    PowerConnectOrDisconnect = @"
+    <QueryList>
+      <Query Id="0" Path="System">
+        <Select Path="System">*[System[(EventID=105)]] and *[System[Provider[@Name="Microsoft-Windows-Kernel-Power"]]] and *[EventData[Data[@Name="AcOnline"]]]</Select>
+      </Query>
+    </QueryList>
+"@
     DisconnectedFromPower = @"
     <QueryList>
       <Query Id="0" Path="System">
@@ -16,6 +23,24 @@ $EventsToQuery = New-Object PSObject -Property @{
       </Query>
     </QueryList>
 "@
+    AfterSupensionOrHibernation = @"
+    <QueryList>
+    <Query Id="0" Path="System">
+      <Select Path="System">*[System[Provider[@Name='Microsoft-Windows-Power-Troubleshooter' or @Name='Pow'] and (EventID=1)]]</Select>
+    </Query>
+  </QueryList>
+"@
+}
+
+function Create-Event-Trigger {
+    param (
+        [string] $EventToListen
+    )
+    $CIMTriggerClass = Get-CimClass -ClassName MSFT_TaskEventTrigger -Namespace Root/Microsoft/Windows/TaskScheduler:MSFT_TaskEventTrigger
+    $Trigger = New-CimInstance -CimClass $CIMTriggerClass -ClientOnly
+    $Trigger.Subscription = $EventToListen
+    $Trigger.Enabled = $True 
+    return $Trigger
 }
 
 function Register-Battery-Mode-Task {
@@ -23,27 +48,27 @@ function Register-Battery-Mode-Task {
         [string] $TaskName,
         [string] $Description,
         [string] $BatteryModeState,
-        [string] $EventToListen,
+                 $Triggers,
         [PSCredential] $Credentials
     )
+    # Check if tasks Exists
+    $TaskExists = Get-ScheduledTask | Where-Object {$_.TaskName -like $TaskName }
+    if($TaskExists) {
+        Write-Host "Task already Exists"
+        return
+    }
+
     # Task Action - VBS Script
     $WScriptExePath = "C:\Windows\System32\wscript.exe"
     $BatteryScriptPath = "$PSScriptRoot\Battery-Mode.vbs"
     $Action = New-ScheduledTaskAction -WorkingDirectory $PSScriptRoot -Execute $WScriptExePath -Argument "$BatteryScriptPath $BatteryModeState"
-
-    # Task that triggers on event: Lost AC adapter
-    $CIMTriggerClass = Get-CimClass -ClassName MSFT_TaskEventTrigger -Namespace Root/Microsoft/Windows/TaskScheduler:MSFT_TaskEventTrigger
-
-    $Trigger = New-CimInstance -CimClass $CIMTriggerClass -ClientOnly
-    $Trigger.Enabled = $True 
-    $Trigger.Subscription = $EventToListen
 
     # Username and Password
     $Username = "$env:userdomain\$env:username"
     $Settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
 
     # Register Task
-    Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Trigger `
+    Register-ScheduledTask -TaskName $TaskName -Action $Action -Trigger $Triggers `
         -RunLevel Highest -Description $Description -User $Username `
         -Settings $Settings
 }
@@ -51,15 +76,24 @@ function Register-Battery-Mode-Task {
 function Register-Battery-Mode-Start-Task {
     $TaskName = "Battery Mode Start"
     $Description = "Starts battery mode optimizations"
-    $BatteryModeState = "start"
-    $EventToListen = @"
-<QueryList>
-  <Query Id="0" Path="System">
-    <Select Path="System">*[System[(EventID=105)]] and *[System[Provider[@Name="Microsoft-Windows-Kernel-Power"]]] and *[EventData[Data[@Name="AcOnline"]]]</Select>
-  </Query>
-</QueryList>
-"@
-    Register-Battery-Mode-Task -TaskName $TaskName -Description $Description -BatteryModeState $BatteryModeState -Event $EventToListen
+    $BatteryModeState = "apply"
+    $EventTrigger = Create-Event-Trigger $EventsToQuery.PowerConnectOrDisconnect
+    Register-Battery-Mode-Task -TaskName $TaskName -Description $Description -BatteryModeState $BatteryModeState -Triggers $EventTrigger
+}
+
+function Register-Battery-Mode-Reapply-Task {
+    $TaskName = "Battery Mode Reapply"
+    $Description = "Reapply battery mode optimizations"
+    $BatteryModeState = "reapply"
+    $EventTrigger = Create-Event-Trigger $EventsToQuery.AfterSupensionOrHibernation
+
+    $Triggers = @(
+        $(New-ScheduledTaskTrigger -AtLogon),
+        $(New-ScheduledTaskTrigger -AtStartup),
+        $EventTrigger
+    )
+
+    Register-Battery-Mode-Task -TaskName $TaskName -Description $Description -BatteryModeState $BatteryModeState -Triggers $Triggers
 }
 
 # Self-Elevate
@@ -72,3 +106,4 @@ if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
 }
 
 Register-Battery-Mode-Start-Task
+Register-Battery-Mode-Reapply-Task
