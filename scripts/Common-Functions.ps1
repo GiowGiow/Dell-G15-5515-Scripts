@@ -160,3 +160,7 @@ function Self-Elevate {
         }
     }
 }
+Function Test-Is-On-Battery 
+{ 
+	return (Get-CimInstance win32_battery).batterystatus -eq 1
+}

@@ -1,5 +1,23 @@
 . "$PSScriptRoot\Common-Functions.ps1"
 
+$EventsToQuery = New-Object PSObject -Property @{
+    # List of interesting events that we can query on Windows to execute tasks
+    DisconnectedFromPower = @"
+    <QueryList>
+      <Query Id="0" Path="System">
+        <Select Path="System">*[System[(EventID=105)]] and *[System[Provider[@Name="Microsoft-Windows-Kernel-Power"]]] and *[EventData[Data[@Name="AcOnline"] and (Data='false')]]</Select>
+      </Query>
+    </QueryList>
+"@
+    ConnectedToPower = @"
+    <QueryList>
+      <Query Id="0" Path="System">
+        <Select Path="System">*[System[(EventID=105)]] and *[System[Provider[@Name="Microsoft-Windows-Kernel-Power"]]] and *[EventData[Data[@Name="AcOnline"] and (Data='true')]]</Select>
+      </Query>
+    </QueryList>
+"@
+}
+
 function Register-Battery-Mode-Task {
     param (
         [string] $TaskName,
@@ -37,33 +55,14 @@ function Register-Battery-Mode-Start-Task {
     $EventToListen = @"
 <QueryList>
   <Query Id="0" Path="System">
-    <Select Path="System">*[System[(EventID=105)]] and *[System[Provider[@Name="Microsoft-Windows-Kernel-Power"]]] and *[EventData[Data[@Name="AcOnline"] and (Data='false')]]</Select>
+    <Select Path="System">*[System[(EventID=105)]] and *[System[Provider[@Name="Microsoft-Windows-Kernel-Power"]]] and *[EventData[Data[@Name="AcOnline"]]]</Select>
   </Query>
 </QueryList>
 "@
     Register-Battery-Mode-Task -TaskName $TaskName -Description $Description -BatteryModeState $BatteryModeState -Event $EventToListen
 }
 
-function Register-Battery-Mode-Stop-Task {
-    $TaskName = "Battery Mode Stop"
-    $Description = "Stops battery mode optimizations"
-    $BatteryModeState = "stop"
-    $EventToListen = @"
-<QueryList>
-  <Query Id="0" Path="System">
-    <Select Path="System">*[System[(EventID=105)]] and *[System[Provider[@Name="Microsoft-Windows-Kernel-Power"]]] and *[EventData[Data[@Name="AcOnline"] and (Data='true')]]</Select>
-  </Query>
-</QueryList>
-"@
-    Register-Battery-Mode-Task -TaskName $TaskName -Description $Description -BatteryModeState $BatteryModeState -Event $EventToListen
-}
-
-function Register-Tasks {
-    # User and Pass is needed to run with highest privileges
-    Register-Battery-Mode-Stop-Task
-    Register-Battery-Mode-Start-Task
-}
-
+# Self-Elevate
 if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdentity]::GetCurrent()).IsInRole([Security.Principal.WindowsBuiltInRole] 'Administrator')) {
     if ([int](Get-CimInstance -Class Win32_OperatingSystem | Select-Object -ExpandProperty BuildNumber) -ge 6000) {
         $CommandLine = "-File `"" + $MyInvocation.MyCommand.Path + "`" " + $MyInvocation.UnboundArguments
@@ -72,4 +71,4 @@ if (-Not ([Security.Principal.WindowsPrincipal] [Security.Principal.WindowsIdent
     }
 }
 
-Register-Tasks
+Register-Battery-Mode-Start-Task
