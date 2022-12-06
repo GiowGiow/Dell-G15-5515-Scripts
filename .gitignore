@@ -1,2 +1,5 @@
 *.xml
 log.txt
+bin/ChangeScreenResolution.exe
+bin/cru
+bin/*.exe

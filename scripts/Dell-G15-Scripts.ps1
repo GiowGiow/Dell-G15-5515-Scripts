@@ -129,7 +129,6 @@ function Set-Laptop-Display-Hz {
     )
     $ParentDir = Split-Path $PSScriptRoot
     $ChangeScreenResolutionBinPath = "$ParentDir\bin\ChangeScreenResolution.exe"
-    Write-Host $ChangeScreenResolutionBinPath
     & $ChangeScreenResolutionBinPath "/d=$LaptopDisplayNumber" "/f=$DisplayFrequency"
 }
 

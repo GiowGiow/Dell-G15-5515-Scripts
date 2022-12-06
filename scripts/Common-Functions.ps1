@@ -164,3 +164,18 @@ Function Test-Is-On-Battery
 { 
 	return (Get-CimInstance win32_battery).batterystatus -eq 1
 }
+
+Function Pause-Script-End ($message)
+{
+    # Check if running Powershell ISE
+    if ($psISE)
+    {
+        Add-Type -AssemblyName System.Windows.Forms
+        [System.Windows.Forms.MessageBox]::Show("$message")
+    }
+    else
+    {
+        Write-Host "$message" -ForegroundColor Yellow
+        $x = $host.ui.RawUI.ReadKey("NoEcho,IncludeKeyDown")
+    }
+}
