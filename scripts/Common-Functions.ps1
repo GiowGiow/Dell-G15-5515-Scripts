@@ -78,17 +78,6 @@ function Start-Battery-Saver {
     powercfg /setdcvalueindex SCHEME_CURRENT SUB_ENERGYSAVER ESBATTTHRESHOLD $BatteryThreshold 
 }
 
-function Set-Laptop-Display-Hz {
-    # Set monitor to defined Hz using this binary
-    # from: https://tools.taubenkorb.at/change-screen-resolution/
-    Param (
-        [string] $LaptopDisplayNumber,
-        [string] $DisplayFrequency
-    )
-    $ChangeScreenResolutionBinPath = "..\bin\ChangeScreenResolution.exe"
-    & $ChangeScreenResolutionBinPath "/d=$LaptopDisplayNumber" "/f=$DisplayFrequency" > $null 2>&1
-}
-
 function Get-User-Credentials {
     $Msg = "Enter the username and password that will run the task";
     $Credentials = $Host.UI.PromptForCredential("Task username and password", $Msg, `

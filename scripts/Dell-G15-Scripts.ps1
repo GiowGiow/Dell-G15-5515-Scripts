@@ -1,4 +1,4 @@
-. ".\Common-Functions.ps1"
+. "$PSScriptRoot\Common-Functions.ps1"
 
 function Set-Killer-Services-State {
     param (
@@ -120,6 +120,19 @@ function Set-Software-Battery-Mode {
     }
 }
 
+function Set-Laptop-Display-Hz {
+    # Set monitor to defined Hz using this binary
+    # from: https://tools.taubenkorb.at/change-screen-resolution/
+    Param (
+        [string] $LaptopDisplayNumber,
+        [string] $DisplayFrequency
+    )
+    $ParentDir = Split-Path $PSScriptRoot
+    $ChangeScreenResolutionBinPath = "$ParentDir\bin\ChangeScreenResolution.exe"
+    Write-Host $ChangeScreenResolutionBinPath
+    & $ChangeScreenResolutionBinPath "/d=$LaptopDisplayNumber" "/f=$DisplayFrequency"
+}
+
 function Set-Software-Battery-Mode-Aggressive {
     param (
         [string] $State # Should be AC or Battery
@@ -173,4 +186,23 @@ function Set-Alien-Tools-State {
     else {
         Write-Host ("Not a valid state")
     }
+}
+
+$Ryzen5800hTDPs = New-Object PSObject -Property @{
+    TDP15 = "--tctl-temp=70 --stapm-limit=15000 --fast-limit=15000 --slow-limit=15000"
+    TDP20 = "--tctl-temp=70 --stapm-limit=25000 --fast-limit=25000 --slow-limit=25000"
+    TDP35 = "--tctl-temp=80 --stapm-limit=35000 --fast-limit=35000 --slow-limit=35000"
+    TDP45_80C = "--tctl-temp=80 --stapm-limit=45000 --fast-limit=48000 --slow-limit=65000"
+    TDP45_85C = "--tctl-temp=85 --stapm-limit=45000 --fast-limit=48000 --slow-limit=65000"
+    TDP60_90C = "--tctl-temp=90 --stapm-limit=60000 --fast-limit=62000 --slow-limit=68000"
+}
+
+function Change-TDP {
+    param (
+        [string] $StrProfile
+    )
+    $Parameters = $StrProfile.Split(" ")
+    $ParentDir = Split-Path $PSScriptRoot
+    $RyzenADJBinPath = "$ParentDir\bin\ryzenadj-win64\ryzenadj.exe"
+    & $RyzenADJBinPath $Parameters
 }

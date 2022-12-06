@@ -5,7 +5,7 @@ $PowerPlans = New-Object PSObject -Property @{
     # I made this custom one with turbo boost disabled based on this post:
     # https://www.reddit.com/r/AcerNitro/comments/rfwjah/how_i_achieved_12_hours_battery_lifeguide/
     # You can get a list of the power plan guids using powercfg /list
-    TurboBoostDisabled  = 'a2b00b5d-6ed8-4ad5-9d4c-18ad222e3d4c'
+    TurboBoostDisabled  = "a2b00b5d-6ed8-4ad5-9d4c-18ad222e3d4c"
     PowerSaver          = "a1841308-3541-4fab-bc81-f71556f20b4a"
     Balanced            = "381b4222-f694-41f0-9685-ff5bb260df2e"
     HighPerformance     = "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c"
