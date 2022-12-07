@@ -1,4 +1,4 @@
-# Dell G15 Script Collection
+# Dell G15 5515 Script Collection
 
 ## Table of Contents
 
