@@ -128,11 +128,11 @@ When running on battery the CPU frequencies are more steady and tend to stay in 
 
 To install the power plan, *Shift + click* on the file and run it with Powershell. The new power plan will appear on the Power Options.
 
-Take note of the GUID of the new power plan, you will need it on the script. Set it on the variable `$PowerPlans` on `scripts/Power-Plans.ps1`. This will allow this awesome power plan automatically set when you need it.
-
 ``` powershell
 Import-Power-Plan.ps1
 ```
+
+Take note of the GUID of the new power plan, you will need it on the script. Set it on the variable `$PowerPlans` on `scripts/Power-Plans.ps1`. This will allow this awesome power plan automatically set when you need it.
 
 **4. Register the scripts to run on battery and AC**
 
@@ -210,7 +210,7 @@ All the additional software required for the script to work.
 
 ### Personal Software Used <a name = "personal"></a>
 
-If you see any mention to this software, it is because I use it, but it is not required for the script to work.
+If you see any mention of this software, it is because I use it, but it is not required for the script to work.
 
 - [Rainmeter](https://www.rainmeter.net/)
 
