@@ -41,6 +41,21 @@ These instructions will get this script up and running on your machine. You also
 
 ### Prerequisites
 
+Select a folder to install the script. As an example, I will use `C:\power-saving-scripts`. 
+
+Download the repository and extract it to the folder you selected.
+
+It should look like this:
+
+``` powershell
+C:\power-saving-scripts\bin\ryzenadj-win64
+C:\power-saving-scripts\scripts
+```
+
+### Download Third-Party Software
+
+Those tools are needed to actually do some of the functionality we want to automate with the script.
+
 1. [CRU](https://www.monitortests.com/forum/Thread-Custom-Resolution-Utility-CRU)
 
 This software creates custom resolutions for the script to change to, as they do not come by default on the DELL G15 5515.
